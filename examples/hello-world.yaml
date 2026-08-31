@@ -1,0 +1,15 @@
+apiVersion: breviary.io/v1
+kind: Runbook
+metadata:
+  name: hello-world
+  owner: self
+spec:
+  steps:
+    - id: greet
+      action: exec
+      exec: echo 'Hello, Breviary!'
+      timeout: 5s
+    - id: verify
+      action: exec
+      exec: echo 'Step 2 complete'
+      timeout: 5s

@@ -1,0 +1,42 @@
+apiVersion: breviary.io/v1
+kind: Runbook
+metadata:
+  name: db-disk-space
+  owner: db-team
+spec:
+  trigger:
+    alert: DiskUsageHigh
+    severity: critical
+    concurrency: 1
+    dedup: 5m
+  steps:
+    - id: check-usage
+      action: exec
+      exec: df -h /var/lib/postgresql | tail -1
+      timeout: 10s
+
+    - id: top-tables
+      action: exec
+      exec: >
+        psql -d app -c "SELECT relname, pg_size_pretty(pg_total_relation_size(C.oid))
+        FROM pg_class C WHERE nspname NOT IN ('pg_catalog','information_schema')
+        ORDER BY pg_total_relation_size(C.oid) DESC LIMIT 5"
+      retry:
+        max: 2
+        backoff: 1s
+      when: steps.check-usage.exit_code == 0
+
+    - id: vacuum
+      action: exec
+      runas: root
+      exec: psql -d app -c "VACUUM ANALYZE VERBOSE"
+      approval:
+        channel: telegram
+        timeout: 10m
+        escalate_after: 3m
+        show: "Запустить VACUUM на production базе app? (может заблокировать таблицы)"
+      undo:
+        id: undo-vacuum
+        action: exec
+        exec: 'echo "rollback: nothing to undo for vacuum"'
+      on-failure: rollback
