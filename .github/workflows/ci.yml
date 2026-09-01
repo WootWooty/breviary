@@ -22,6 +22,7 @@ jobs:
         with:
           version: latest
           args: --config=.golangci.yml
+          install-mode: goinstall
 
       - name: Vet
         run: go vet ./...
