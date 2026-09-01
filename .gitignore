@@ -1,0 +1,26 @@
+# Compiled binary
+/breviary
+/breviary.exe
+/brev
+
+# Database (local SQLite)
+*.db
+*.db-wal
+*.db-shm
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+/tmp/
