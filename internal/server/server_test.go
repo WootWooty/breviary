@@ -40,7 +40,7 @@ func TestHealthEndpoint(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer eng.Close()
+	t.Cleanup(func() { _ = eng.Close() })
 
 	s := New(eng)
 
@@ -95,7 +95,7 @@ func TestRunEndpoint(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer eng.Close()
+	t.Cleanup(func() { _ = eng.Close() })
 
 	s := New(eng)
 	// Register a simple runbook

@@ -33,7 +33,7 @@ func TestNew(t *testing.T) {
 				if e == nil {
 					t.Fatal("New() returned nil engine")
 				}
-				e.Close()
+				_ = e.Close()
 			}
 		})
 	}
@@ -48,6 +48,6 @@ func TestNewWithLogger(t *testing.T) {
 		if e == nil {
 			t.Fatal("New() returned nil engine")
 		}
-		e.Close()
+		_ = e.Close()
 	})
 }
