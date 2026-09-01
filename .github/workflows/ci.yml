@@ -18,6 +18,14 @@ jobs:
           cache: true
 
       - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --config=.golangci.yml
+          install-mode: goinstall
+          only-new-issues: true
+
+      - name: Vet
         run: go vet ./...
 
       - name: Tests

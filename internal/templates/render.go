@@ -25,7 +25,6 @@ func Render(tmpl string, stepResults map[string]interface{}) (string, error) {
 
 	ctx := map[string]interface{}{
 		"steps": stepResults,
-		"env":   envMap(),
 	}
 
 	var buf bytes.Buffer
@@ -34,12 +33,6 @@ func Render(tmpl string, stepResults map[string]interface{}) (string, error) {
 	}
 
 	return buf.String(), nil
-}
-
-// envMap builds environment variables map
-func envMap() map[string]string {
-	m := make(map[string]string)
-	return m // no-op: secrets leak prevention
 }
 
 // HasTemplate checks if a string contains template syntax

@@ -12,11 +12,11 @@ import (
 
 // Config — root configuration
 type Config struct {
-	DBPath   string            `yaml:"db_path"`
-	Serve    ServeConfig       `yaml:"serve"`
-	Logging  LoggingConfig     `yaml:"logging"`
-	Approval ApprovalConfig    `yaml:"approval"`
-	Runbooks []RunbookRef      `yaml:"runbooks"`
+	DBPath   string         `yaml:"db_path"`
+	Serve    ServeConfig    `yaml:"serve"`
+	Logging  LoggingConfig  `yaml:"logging"`
+	Approval ApprovalConfig `yaml:"approval"`
+	Runbooks []RunbookRef   `yaml:"runbooks"`
 }
 
 // ServeConfig — HTTP server
@@ -32,8 +32,8 @@ type LoggingConfig struct {
 
 // ApprovalConfig — global approval settings
 type ApprovalConfig struct {
-	DefaultTimeout   string `yaml:"default_timeout"`   // 30m
-	EscalationAfter  string `yaml:"escalation_after"`  // 10m
+	DefaultTimeout  string `yaml:"default_timeout"`  // 30m
+	EscalationAfter string `yaml:"escalation_after"` // 10m
 }
 
 // RunbookRef — a reference to a runbook for loading
@@ -54,7 +54,7 @@ func Default() *Config {
 			Level:  "info",
 		},
 		Approval: ApprovalConfig{
-			DefaultTimeout:   "30m",
+			DefaultTimeout:  "30m",
 			EscalationAfter: "10m",
 		},
 	}
