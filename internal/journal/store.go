@@ -24,10 +24,10 @@ type Journal struct {
 
 // RunRow — a runbook run record
 type RunRow struct {
-	ID        string    // "run-<ts>-<rand>"
-	BookName  string    // runbook name
-	Spec      string    // PINNED spec (versioning: spec is frozen at run start)
-	Status    string    // running / succeeded / failed / aborted
+	ID        string // "run-<ts>-<rand>"
+	BookName  string // runbook name
+	Spec      string // PINNED spec (versioning: spec is frozen at run start)
+	Status    string // running / succeeded / failed / aborted
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
