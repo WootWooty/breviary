@@ -1,12 +1,13 @@
 // Command breviary — runbook automation engine
 // usage:
-//   breviary serve             — HTTP daemon
-//   breviary run <file>        — run runbook
-//   breviary resume <run-id>   — resume failed run
-//   breviary validate <file>   — validate runbook YAML
-//   breviary logs <run-id>     — audit trail
-//   breviary approve <run-id> <step-id>  — CLI approval
-//   breviary reject <run-id> <step-id>   — CLI reject
+//
+//	breviary serve             — HTTP daemon
+//	breviary run <file>        — run runbook
+//	breviary resume <run-id>   — resume failed run
+//	breviary validate <file>   — validate runbook YAML
+//	breviary logs <run-id>     — audit trail
+//	breviary approve <run-id> <step-id>  — CLI approval
+//	breviary reject <run-id> <step-id>   — CLI reject
 package main
 
 import (
@@ -75,7 +76,7 @@ func getEngine(dbPath string) *engine.Engine {
 	if dbPath == "" {
 		dbPath = "breviary.db"
 	}
-	eng, err := engine.New(engine.Config{JournalPath: dbPath})
+	eng, err := engine.New(engine.WithJournalPath(dbPath))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: engine: %v\n", err)
 		os.Exit(1)

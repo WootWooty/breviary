@@ -29,7 +29,7 @@ func helperBuildRunbook(name string, steps ...spec.Step) *spec.Runbook {
 
 func TestEngineRunSuccess(t *testing.T) {
 	dir := t.TempDir()
-	eng, err := New(Config{JournalPath: filepath.Join(dir, "test.db")})
+	eng, err := New(WithJournalPath(filepath.Join(dir, "test.db")))
 	if err != nil {
 		t.Fatalf("New engine: %v", err)
 	}
@@ -50,7 +50,7 @@ func TestEngineResumeAfterCrash(t *testing.T) {
 	dbPath := filepath.Join(dir, "resume.db")
 
 	// PHASE 1: simulate crash — create run, write checkpoint for step-1 without success
-	eng1, err := New(Config{JournalPath: dbPath})
+	eng1, err := New(WithJournalPath(dbPath))
 	if err != nil {
 		t.Fatalf("New engine1: %v", err)
 	}
@@ -71,7 +71,7 @@ func TestEngineResumeAfterCrash(t *testing.T) {
 	eng1.Close()
 
 	// PHASE 2: Resume — pass existing runID
-	eng2, err := New(Config{JournalPath: dbPath})
+	eng2, err := New(WithJournalPath(dbPath))
 	if err != nil {
 		t.Fatalf("New engine2: %v", err)
 	}
@@ -113,7 +113,7 @@ func TestEngineSkipCompletedSteps(t *testing.T) {
 	dbPath := filepath.Join(dir, "skip.db")
 
 	// Create a run with two successful steps
-	eng1, err := New(Config{JournalPath: dbPath})
+	eng1, err := New(WithJournalPath(dbPath))
 	if err != nil {
 		t.Fatalf("New engine1: %v", err)
 	}
@@ -126,7 +126,7 @@ func TestEngineSkipCompletedSteps(t *testing.T) {
 	eng1.Close()
 
 	// Resume: engine skips steps 0,1 and continues to 2
-	eng2, err := New(Config{JournalPath: dbPath})
+	eng2, err := New(WithJournalPath(dbPath))
 	if err != nil {
 		t.Fatalf("New engine2: %v", err)
 	}
@@ -153,7 +153,7 @@ func TestEngineSkipCompletedSteps(t *testing.T) {
 
 func TestEngineFailingStep(t *testing.T) {
 	dir := t.TempDir()
-	eng, err := New(Config{JournalPath: filepath.Join(dir, "fail.db")})
+	eng, err := New(WithJournalPath(filepath.Join(dir, "fail.db")))
 	if err != nil {
 		t.Fatalf("New engine: %v", err)
 	}
@@ -172,7 +172,7 @@ func TestEngineFailingStep(t *testing.T) {
 
 func TestEngineWithCELCondition(t *testing.T) {
 	dir := t.TempDir()
-	eng, err := New(Config{JournalPath: filepath.Join(dir, "cel.db")})
+	eng, err := New(WithJournalPath(filepath.Join(dir, "cel.db")))
 	if err != nil {
 		t.Fatalf("New engine: %v", err)
 	}
@@ -201,7 +201,7 @@ func TestEngineWithCELCondition(t *testing.T) {
 
 func TestEngineCELConditionFalse(t *testing.T) {
 	dir := t.TempDir()
-	eng, err := New(Config{JournalPath: filepath.Join(dir, "cel2.db")})
+	eng, err := New(WithJournalPath(filepath.Join(dir, "cel2.db")))
 	if err != nil {
 		t.Fatalf("New engine: %v", err)
 	}
@@ -231,7 +231,7 @@ func TestEngineCELConditionFalse(t *testing.T) {
 	// step-0 should have success (false is not failure, exit code 1 is failure in on-failure)
 	// step-1 should be skipped (when=false)
 	// step-2 should not run (stop on failure)
-	
+
 	done0, _ := eng.j.HasStep(runID, "step-0")
 	// step-0 failed → not success
 	if done0 {
@@ -253,7 +253,7 @@ func TestEngineCELConditionFalse(t *testing.T) {
 
 func TestEngineCELSkipByCondition(t *testing.T) {
 	dir := t.TempDir()
-	eng, err := New(Config{JournalPath: filepath.Join(dir, "skipcel.db")})
+	eng, err := New(WithJournalPath(filepath.Join(dir, "skipcel.db")))
 	if err != nil {
 		t.Fatalf("New engine: %v", err)
 	}
@@ -304,7 +304,7 @@ func findMostRecentRun(t *testing.T, eng *Engine) string {
 
 func TestEngineDedup(t *testing.T) {
 	dir := t.TempDir()
-	eng, err := New(Config{JournalPath: filepath.Join(dir, "dedup.db")})
+	eng, err := New(WithJournalPath(filepath.Join(dir, "dedup.db")))
 	if err != nil {
 		t.Fatalf("New engine: %v", err)
 	}
@@ -336,7 +336,7 @@ func TestEngineDedup(t *testing.T) {
 
 func TestEngineConcurrency(t *testing.T) {
 	dir := t.TempDir()
-	eng, err := New(Config{JournalPath: filepath.Join(dir, "concurr.db")})
+	eng, err := New(WithJournalPath(filepath.Join(dir, "concurr.db")))
 	if err != nil {
 		t.Fatalf("New engine: %v", err)
 	}
@@ -366,7 +366,7 @@ func TestEngineConcurrency(t *testing.T) {
 
 func TestEngineThrottle(t *testing.T) {
 	dir := t.TempDir()
-	eng, err := New(Config{JournalPath: filepath.Join(dir, "throttle.db")})
+	eng, err := New(WithJournalPath(filepath.Join(dir, "throttle.db")))
 	if err != nil {
 		t.Fatalf("New engine: %v", err)
 	}
@@ -395,7 +395,7 @@ func TestEngineThrottle(t *testing.T) {
 
 func TestEngineParallelRuns(t *testing.T) {
 	dir := t.TempDir()
-	eng, err := New(Config{JournalPath: filepath.Join(dir, "parallel.db")})
+	eng, err := New(WithJournalPath(filepath.Join(dir, "parallel.db")))
 	if err != nil {
 		t.Fatalf("New engine: %v", err)
 	}
@@ -427,7 +427,7 @@ func TestEngineResumeViaPublicMethod(t *testing.T) {
 	dbPath := filepath.Join(dir, "resume2.db")
 
 	// PHASE 1: run runbook with 3 steps, kill on step 2
-	eng1, err := New(Config{JournalPath: dbPath})
+	eng1, err := New(WithJournalPath(dbPath))
 	if err != nil {
 		t.Fatalf("New engine1: %v", err)
 	}
@@ -454,7 +454,7 @@ func TestEngineResumeViaPublicMethod(t *testing.T) {
 	eng1.Close()
 
 	// PHASE 2: Resume via engine2.Resume
-	eng2, err := New(Config{JournalPath: dbPath})
+	eng2, err := New(WithJournalPath(dbPath))
 	if err != nil {
 		t.Fatalf("New engine2: %v", err)
 	}
