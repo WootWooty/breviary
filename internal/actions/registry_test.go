@@ -134,7 +134,7 @@ func TestEnvResolve(t *testing.T) {
 	if strings.Contains(result, "hello world") || strings.Contains(result, "${TEST_VAR}") {
 		// resolveEnv replaces ${VAR} via os.ExpandEnv
 	}
-	
+
 	expanded := os.ExpandEnv("echo 'hello ${TEST_VAR}'")
 	if !strings.Contains(expanded, "hello world") {
 		t.Errorf("expected 'hello world', got %q", expanded)

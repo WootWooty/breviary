@@ -1,9 +1,10 @@
 // Package server — HTTP daemon for webhook ingest and CLI approval
 // Endpoints:
-//   POST /api/v1/run      — accept alert, execute runbook
-//   POST /api/v1/approve   — approve a step
-//   POST /api/v1/reject    — reject a step
-//   GET  /api/v1/health    — liveness probe
+//
+//	POST /api/v1/run      — accept alert, execute runbook
+//	POST /api/v1/approve   — approve a step
+//	POST /api/v1/reject    — reject a step
+//	GET  /api/v1/health    — liveness probe
 package server
 
 import (

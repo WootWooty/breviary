@@ -3,13 +3,11 @@
 package engine
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -20,10 +18,29 @@ import (
 	"github.com/breviary/breviary/internal/templates"
 )
 
-// Config — engine configuration
-type Config struct {
-	JournalPath string // path to SQLite DB
+// Option — functional option for Engine construction
+type Option func(*config)
+
+// config — internal engine configuration (set via options)
+type config struct {
+	JournalPath string
 	Logger      *slog.Logger
+}
+
+func defaultConfig() config {
+	return config{
+		Logger: slog.Default(),
+	}
+}
+
+// WithJournalPath sets the SQLite journal path for run history and audit trail
+func WithJournalPath(path string) Option {
+	return func(c *config) { c.JournalPath = path }
+}
+
+// WithLogger sets the structured logger (default: slog.Default)
+func WithLogger(logger *slog.Logger) Option {
+	return func(c *config) { c.Logger = logger }
 }
 
 // Engine — runbook executor
@@ -36,7 +53,11 @@ type Engine struct {
 }
 
 // New creates an Engine with an open journal, action registry, and CEL evaluator
-func New(cfg Config) (*Engine, error) {
+func New(opts ...Option) (*Engine, error) {
+	cfg := defaultConfig()
+	for _, o := range opts {
+		o(&cfg)
+	}
 	j, err := journal.Open(journal.Config{Path: cfg.JournalPath})
 	if err != nil {
 		return nil, err
@@ -350,34 +371,4 @@ func (e *Engine) rollback(ctx context.Context, runID string, book *spec.Runbook,
 		e.j.AppendStepEvent(runID, step.Undo.ID, "undo", `{}`)
 		_ = e.runStep(ctx, step.Undo, actions.State{})
 	}
-}
-
-// Backup executeStep — temporary bridge for engine tests
-func executeStep(ctx context.Context, step *spec.Step, attempt int) spec.Result {
-	var stdout, stderr bytes.Buffer
-	res := spec.Result{StepID: step.ID, Status: spec.StatusSuccess}
-
-	cmd := exec.CommandContext(ctx, "sh", "-c", step.Exec)
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	start := time.Now()
-	err := cmd.Run()
-	res.Duration = time.Since(start).Round(time.Millisecond).String()
-	res.Output = stdout.String()
-
-	if err != nil {
-		res.Error = stderr.String()
-		if res.Error == "" {
-			res.Error = err.Error()
-		}
-		res.ExitCode = 1
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			res.ExitCode = exitErr.ExitCode()
-		}
-		res.Status = spec.StatusFailure
-	} else {
-		res.ExitCode = 0
-	}
-	return res
 }
