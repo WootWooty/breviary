@@ -34,25 +34,30 @@ func main() {
 	cmd := os.Args[1]
 	args := os.Args[2:]
 
+	var err error
 	switch cmd {
 	case "serve":
-		cmdServe(args)
+		err = cmdServe(args)
 	case "run":
-		cmdRun(args)
+		err = cmdRun(args)
 	case "resume":
-		cmdResume(args)
+		err = cmdResume(args)
 	case "validate":
-		cmdValidate(args)
+		err = cmdValidate(args)
 	case "logs":
-		cmdLogs(args)
+		err = cmdLogs(args)
 	case "git":
-		cmdGit(args)
+		err = cmdGit(args)
 	case "approve":
-		cmdApprove(args)
+		err = cmdApprove(args)
 	case "reject":
-		cmdReject(args)
+		err = cmdReject(args)
 	default:
 		usage()
+		os.Exit(1)
+	}
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "✗ %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -84,7 +89,7 @@ func getEngine(dbPath string) *engine.Engine {
 	return eng
 }
 
-func cmdServe(args []string) {
+func cmdServe(args []string) error {
 	addr := ":8080"
 	if len(args) > 0 {
 		addr = args[0]
@@ -116,19 +121,18 @@ func cmdServe(args []string) {
 		fmt.Fprintf(os.Stderr, "Breviary serve on %s\n", addr)
 		if err := srv.Listen(addr); err != nil {
 			fmt.Fprintf(os.Stderr, "serve error: %v\n", err)
-			os.Exit(1)
 		}
 	}()
 
 	<-ctx.Done()
 	fmt.Fprintln(os.Stderr, "\nShutting down...")
 	srv.Shutdown(context.Background())
+	return nil
 }
 
-func cmdRun(args []string) {
+func cmdRun(args []string) error {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "Usage: breviary run <file> [--db <path>]")
-		os.Exit(1)
+		return fmt.Errorf("Usage: breviary run <file> [--db <path>]")
 	}
 	path := args[0]
 
@@ -137,8 +141,7 @@ func cmdRun(args []string) {
 
 	book, err := spec.ValidateYAML(path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("%w", err)
 	}
 
 	n := len(book.Spec.Steps)
@@ -148,18 +151,17 @@ func cmdRun(args []string) {
 	if err := eng.Run(ctx, book, ""); err != nil {
 		if err.Error() == "approval pending" {
 			fmt.Fprintln(os.Stderr, "⏳ Step requires approval (breviary approve <run-id> <step-id>)")
-			os.Exit(0)
+			return nil
 		}
-		fmt.Fprintf(os.Stderr, "✗ error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("%w", err)
 	}
 	fmt.Fprintln(os.Stderr, "✓ Done")
+	return nil
 }
 
-func cmdResume(args []string) {
+func cmdResume(args []string) error {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "Usage: breviary resume <run-id>")
-		os.Exit(1)
+		return fmt.Errorf("Usage: breviary resume <run-id>")
 	}
 	runID := args[0]
 
@@ -170,33 +172,31 @@ func cmdResume(args []string) {
 	if err := eng.Resume(ctx, runID); err != nil {
 		if err.Error() == "approval pending" {
 			fmt.Fprintln(os.Stderr, "⏳ Step requires approval")
-			os.Exit(0)
+			return nil
 		}
-		fmt.Fprintf(os.Stderr, "✗ error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("%w", err)
 	}
 	fmt.Fprintln(os.Stderr, "✓ Run completed")
+	return nil
 }
 
-func cmdValidate(args []string) {
+func cmdValidate(args []string) error {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "Usage: breviary validate <file>")
-		os.Exit(1)
+		return fmt.Errorf("Usage: breviary validate <file>")
 	}
 	for _, path := range args {
 		book, err := spec.ValidateYAML(path)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "✗ %s — %v\n", path, err)
-			os.Exit(1)
+			return fmt.Errorf("%s — %w", path, err)
 		}
 		fmt.Fprintf(os.Stderr, "✓ %s — valid runbook (%d steps)\n", book.Metadata.Name, len(book.Spec.Steps))
 	}
+	return nil
 }
 
-func cmdLogs(args []string) {
+func cmdLogs(args []string) error {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "Usage: breviary logs <run-id>")
-		os.Exit(1)
+		return fmt.Errorf("Usage: breviary logs <run-id>")
 	}
 	runID := args[0]
 
@@ -205,20 +205,19 @@ func cmdLogs(args []string) {
 
 	events, err := eng.Events(runID)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "✗ error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("%w", err)
 	}
 
 	fmt.Fprintf(os.Stderr, "Run: %s\n", runID)
 	for _, ev := range events {
 		fmt.Fprintf(os.Stderr, "  %s/%s → %s\n", ev.RunID, ev.StepID, ev.Kind)
 	}
+	return nil
 }
 
-func cmdGit(args []string) {
+func cmdGit(args []string) error {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "Usage: breviary git <clone-url> [ref]")
-		os.Exit(1)
+		return fmt.Errorf("Usage: breviary git <clone-url> [ref]")
 	}
 	repoURL := args[0]
 	ref := "main"
@@ -229,8 +228,7 @@ func cmdGit(args []string) {
 	cacheDir := filepath.Join(os.Getenv("HOME"), ".cache", "breviary", "runbooks")
 	dir, err := git.Sync(cacheDir, repoURL, ref)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "✗ error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("%w", err)
 	}
 
 	files, _ := git.ListRunbooks(dir)
@@ -238,12 +236,12 @@ func cmdGit(args []string) {
 	for _, f := range files {
 		fmt.Fprintf(os.Stderr, "  • %s\n", f)
 	}
+	return nil
 }
 
-func cmdApprove(args []string) {
+func cmdApprove(args []string) error {
 	if len(args) < 2 {
-		fmt.Fprintln(os.Stderr, "Usage: breviary approve <run-id> <step-id>")
-		os.Exit(1)
+		return fmt.Errorf("Usage: breviary approve <run-id> <step-id>")
 	}
 	runID, stepID := args[0], args[1]
 
@@ -251,16 +249,15 @@ func cmdApprove(args []string) {
 	defer eng.Close()
 
 	if err := eng.ApproveStep(runID, stepID); err != nil {
-		fmt.Fprintf(os.Stderr, "✗ error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("%w", err)
 	}
 	fmt.Fprintf(os.Stderr, "✓ Step %s/%s approved\n", runID, stepID)
+	return nil
 }
 
-func cmdReject(args []string) {
+func cmdReject(args []string) error {
 	if len(args) < 2 {
-		fmt.Fprintln(os.Stderr, "Usage: breviary reject <run-id> <step-id>")
-		os.Exit(1)
+		return fmt.Errorf("Usage: breviary reject <run-id> <step-id>")
 	}
 	runID, stepID := args[0], args[1]
 
@@ -268,8 +265,8 @@ func cmdReject(args []string) {
 	defer eng.Close()
 
 	if err := eng.RejectStep(runID, stepID); err != nil {
-		fmt.Fprintf(os.Stderr, "✗ error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("%w", err)
 	}
 	fmt.Fprintf(os.Stderr, "✓ Step %s/%s rejected\n", runID, stepID)
+	return nil
 }
