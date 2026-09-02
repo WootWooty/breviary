@@ -40,7 +40,7 @@ func TestMain(m *testing.M) {
 
 	// Cleanup: only remove if we built it (not found in PATH)
 	if _, err := exec.LookPath(binName); err != nil {
-		os.Remove(binPath)
+		_ = os.Remove(binPath) // best-effort cleanup
 	}
 	os.Exit(code)
 }

@@ -2,8 +2,8 @@ package harness_test
 
 import (
 	"bytes"
-	"fmt"
 	"flag"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -110,12 +110,12 @@ func diffLines(want, got []byte) string {
 	gotLines := bytes.Split(got, []byte("\n"))
 
 	var buf bytes.Buffer
-	max := len(wantLines)
-	if len(gotLines) > max {
-		max = len(gotLines)
+	n := len(wantLines)
+	if len(gotLines) > n {
+		n = len(gotLines)
 	}
 
-	for i := 0; i < max; i++ {
+	for i := 0; i < n; i++ {
 		w := []byte{}
 		g := []byte{}
 		if i < len(wantLines) {
