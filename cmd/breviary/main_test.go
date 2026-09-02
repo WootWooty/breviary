@@ -47,8 +47,8 @@ func TestCmdRun_Valid(t *testing.T) {
 	// Chdir to temp dir for DB isolation
 	origDir, _ := os.Getwd()
 	tmpDir := t.TempDir()
-	os.Chdir(tmpDir)
-	defer os.Chdir(origDir)
+	_ = os.Chdir(tmpDir)
+	t.Cleanup(func() { _ = os.Chdir(origDir) })
 
 	err := cmdRun([]string{path})
 	if err != nil {
@@ -73,14 +73,14 @@ func TestCmdRun_Nonexistent(t *testing.T) {
 func TestGetEngine(t *testing.T) {
 	origDir, _ := os.Getwd()
 	tmpDir := t.TempDir()
-	os.Chdir(tmpDir)
-	defer os.Chdir(origDir)
+	_ = os.Chdir(tmpDir)
+	t.Cleanup(func() { _ = os.Chdir(origDir) })
 
 	eng := getEngine("")
 	if eng == nil {
 		t.Fatal("expected non-nil engine")
 	}
-	eng.Close()
+	_ = eng.Close()
 }
 
 // ---- Binary-based acceptance tests (verify CLI entry point) ----
