@@ -1,0 +1,10 @@
+Breviary — runbook automation engine
+Usage:
+  breviary serve             — HTTP daemon (webhook + approval API)
+  breviary run <file>        — run runbook from YAML
+  breviary resume <run-id>   — resume failed/approval-pending run
+  breviary validate <file>   — validate runbook YAML
+  breviary logs <run-id>     — show audit trail
+  breviary git <url> [ref]   — clone/pull runbook repository
+  breviary approve <run-id> <step-id>  — approve pending step
+  breviary reject <run-id> <step-id>   — reject pending step
